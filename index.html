@@ -1,0 +1,709 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Delivery Console</title>
+  <style>
+    /* ==========================================================================
+       CREAM & ESPRESSO EDITORIAL THEME
+       ========================================================================== */
+    :root {
+      --bg-cream: #fbf9f4;         /* Soft warm ivory / cream */
+      --card-cream: #ffffff;       /* Pure crisp white for cards */
+      --border-soft: #e5ded3;      /* Warm taupe / parchment border */
+      --border-subtle: #ece5dc;
+      
+      --text-main: #2b2621;        /* Deep espresso charcoal for maximum readability */
+      --text-muted: #736b63;       /* Muted warm slate/brown */
+      --accent-bronze: #8c6b3e;    /* Rich antique bronze accent */
+      --accent-hover: #755730;     /* Darker bronze hover */
+      --accent-light: rgba(140, 107, 62, 0.12);
+      
+      --input-bg: #faf7f2;         /* Pale warm linen for input fields */
+      --table-header: #f3eee6;     /* Cream biscuit header */
+      --danger: #b91c1c;           /* Elegant deep crimson */
+      --danger-hover: #991b1b;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+    }
+
+    /* Sticky Top Header */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #ffffff;
+      padding: 14px 24px;
+      border-bottom: 2px solid var(--accent-bronze);
+      box-shadow: 0 4px 12px rgba(60, 48, 35, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .sticky-header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent-bronze);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn-copy {
+      background-color: var(--accent-bronze);
+    }
+    .btn-copy:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-clear {
+      background-color: var(--danger);
+    }
+    .btn-clear:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .status-msg {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-bronze);
+      display: none;
+    }
+
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: var(--card-cream);
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(60, 48, 35, 0.04);
+      border: 1px solid var(--border-soft);
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-header h3 {
+      margin: 0;
+      color: var(--accent-bronze);
+      font-size: 1.05rem;
+    }
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Column Alignment for form inputs */
+    .field-column-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 36px 130px 1fr;
+      align-items: start;
+      gap: 12px;
+      background: var(--input-bg);
+      padding: 10px 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .field-row.dragging {
+      opacity: 0.45;
+      background: var(--accent-light);
+      border: 1px dashed var(--accent-bronze);
+    }
+
+    .field-row.drag-over {
+      border-top: 2px solid var(--accent-bronze);
+    }
+
+    .drag-handle {
+      cursor: grab;
+      user-select: none;
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding-top: 4px;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+      color: var(--accent-bronze);
+    }
+
+    .field-row label {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      padding-top: 8px;
+      text-align: right;
+    }
+
+    textarea {
+      width: 100%;
+      height: 44px;
+      padding: 8px 10px;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 0.875rem;
+    }
+
+    textarea:focus, select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-bronze);
+      box-shadow: 0 0 0 2px var(--accent-light);
+    }
+
+    /* Checklist Header & Tab Controls */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: #eee8de;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: var(--accent-bronze);
+      box-shadow: 0 1px 3px rgba(60, 48, 35, 0.08);
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    /* Table styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border-soft);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--table-header);
+      color: var(--accent-bronze);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .col-sno {
+      width: 60px;
+      text-align: center;
+    }
+
+    .col-status {
+      width: 180px;
+    }
+
+    .col-comments {
+      width: 320px;
+    }
+
+    select.status-select {
+      width: 100%;
+      padding: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .comment-wrapper {
+      display: flex;
+      gap: 6px;
+    }
+
+    input.comment-input {
+      flex: 1;
+      padding: 6px 8px;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      border-radius: 4px;
+    }
+
+    .btn-row-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 4px;
+    }
+    .btn-row-clear:hover {
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Top Header -->
+  <header class="sticky-header">
+    <h1>QA Delivery Console</h1>
+    <div class="btn-group">
+      <label class="checkbox-label" style="margin-right: 12px;">
+        <input type="checkbox" id="includeTableCheck" checked="">
+        Include Checklist in Copy
+      </label>
+      <button type="button" class="btn btn-copy" onclick="copyAll()">Copy for Email</button>
+      <button type="button" class="btn btn-clear" onclick="clearAll()">Clear All</button>
+      <span id="copyFeedback" class="status-msg">Table Copied!</span>
+    </div>
+  </header>
+
+  <div class="content-wrapper">
+    <!-- Reordered Form Inputs -->
+    <div class="card">
+      <div class="section-header">
+        <h3>Delivery Details</h3>
+        <span class="hint-text">Drag handle (⠿) to rearrange rows</span>
+      </div>
+      <div class="field-column-list" id="fieldList">
+        
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="filePath">File Path:</label>
+          <textarea id="filePath" placeholder="Enter file path..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="acid">Acid:</label>
+          <textarea id="acid" placeholder="Enter Acid..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="preview">Preview:</label>
+          <textarea id="preview" placeholder="Enter preview URL..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="githubLink">GitHub Link:</label>
+          <textarea id="githubLink" placeholder="Enter GitHub URL..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="assembleLink">Assemble Link:</label>
+          <textarea id="assembleLink" placeholder="Enter Assemble link..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="validator">Validator:</label>
+          <textarea id="validator" placeholder="Enter validator URL / status..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="masterPath">Master Path:</label>
+          <textarea id="masterPath" placeholder="Enter master path..."></textarea>
+        </div>
+
+        <div class="field-row" draggable="true">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <label for="note">Note:</label>
+          <textarea id="note" placeholder="Enter additional notes or comments..."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- QA Checklist Table -->
+    <div class="card">
+      <div class="table-toolbar">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <h3 style="margin: 0; color: var(--accent-bronze);">QA Checklist</h3>
+          <!-- Checklist Switcher Tabs -->
+          <div class="tabs">
+            <button type="button" class="tab-btn active" id="tabStandard" onclick="switchChecklist('standard')">Standard</button>
+            <button type="button" class="tab-btn" id="tabRolex" onclick="switchChecklist('rolex')">Rolex</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-row-clear" style="font-size: 0.85rem; color: var(--danger);" onclick="clearCommentsOnly()">
+          ✕ Clear Comments Only
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table id="checklistTable">
+          <thead>
+            <tr>
+              <th class="col-sno">S.No</th>
+              <th>Checklist Item</th>
+              <th class="col-status">Yes / No / NA</th>
+              <th class="col-comments">Comments</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Standard Checklist Data (Empty comments)
+    const standardChecklist = [
+      { no: 1, item: "File name converted? (As instructed on source brief)", status: "Yes", comment: "" },
+      { no: 2, item: "Proper meta tag used? (Dimension should replicate on this tag)", status: "Yes", comment: "" },
+      { no: 4, item: "Banner alignment is matched with PSD?", status: "Yes", comment: "" },
+      { no: 5, item: "Is live text used to the copies?", status: "NA - Not Applicable", comment: "" },
+      { no: 6, item: "Total font weight ( when custom font used )", status: "NA - Not Applicable", comment: "" },
+      { no: 7, item: "Animation timing followed same on all creatives? If not, please specify the reason on the comment section.", status: "Yes", comment: "" },
+      { no: 8, item: "Animation timing shouldn't exceed more than 30 sec (Including loops)", status: "Yes", comment: "" },
+      { no: 9, item: "Ad-server implemented? Mention the Ad-server name in the comment section", status: "Yes", comment: "" },
+      { no: 10, item: "Ad-server hosted GSAP library changed? (Based on the ad-server, hosted should change. eg., If you are build the banner in DCM, then DCM hosted library path should be placed in the code)", status: "Yes", comment: "" },
+      { no: 11, item: "Click tag Implemented? (Check the brief for the click tag URL)", status: "Yes", comment: "" },
+      { no: 12, item: "Check the banner in all major browsers (Chrome, Safari, Firefox and IE)", status: "Yes", comment: "" },
+      { no: 13, item: "File size reduced? (As instructed on source brief)", status: "Yes", comment: "" },
+      { no: 15, item: "Files validated in validator? Share the validator link", status: "Yes", comment: "" },
+      { no: 16, item: "Check the console and fix if there is any error", status: "Yes", comment: "" },
+      { no: 17, item: "Unwanted images/file/coding deleted on the creative?", status: "Yes", comment: "" },
+      { no: 18, item: "All banners should be zipped with correct file size", status: "Yes", comment: "" },
+      { no: 19, item: "GIT repository(campaign) created? Client name should be in lowercase and not require \"chn\" before it. (eg., client-FIDO number/Maconomy ID [hsbc-H00000])", status: "Yes", comment: "" },
+      { no: 20, item: "Check the logo, file name and title in the preview", status: "Yes", comment: "" }
+    ];
+
+    // 2. Rolex Checklist Data (Empty comments)
+    const rolexChecklist = [
+      { no: 1, item: "File name follows Rolex naming convention", status: "Yes", comment: "" },
+      { no: 2, item: "Proper meta tag with correct dimensions", status: "Yes", comment: "" },
+      { no: 3, item: "Creative includes a consistent Title tag", status: "Yes", comment: "" },
+      { no: 4, item: "Logo, file name, and title correct in preview", status: "Yes", comment: "" },
+      { no: 5, item: "Photoshop color set to Adobe RGB (1998); “Convert to sRGB” unchecked on export", status: "Yes", comment: "" },
+      { no: 6, item: "Exported image colors visually match provided assets/reference", status: "Yes", comment: "" },
+      { no: 7, item: "Banner alignment matches PSD", status: "Yes", comment: "" },
+      { no: 8, item: "All copy implemented as live text", status: "NA - Not Applicable", comment: "" },
+      { no: 9, item: "Total font weight verified (if custom fonts used)", status: "NA - Not Applicable", comment: "" },
+      { no: 10, item: "Copies, logos, CTA, and product images exported at 2×; background images at 1×; 80 % quality", status: "No", comment: "" },
+      { no: 11, item: "Animation timing consistent across creatives (differences noted)", status: "NA - Not Applicable", comment: "" },
+      { no: 12, item: "Total animation time ≤ 30 sec including loops", status: "Yes", comment: "" },
+      { no: 13, item: "Banner resumes at end frame after tab switch", status: "Yes", comment: "" },
+      { no: 14, item: "Ad server implemented – name specified", status: "Yes", comment: "" },
+      { no: 15, item: "Correct ad-server-hosted GSAP library path (e.g., DCM for DCM builds)", status: "Yes", comment: "" },
+      { no: 16, item: "ClickTag implemented; URL matches brief", status: "Yes", comment: "" },
+      { no: 17, item: "Console checked – no errors", status: "Yes", comment: "" },
+      { no: 18, item: "Unused images/files/code removed", status: "Yes", comment: "" },
+      { no: 19, item: "Banner tested in Chrome, Safari, Firefox, Edge", status: "Yes", comment: "" },
+      { no: 20, item: "File size optimized as per brief", status: "Yes", comment: "" },
+      { no: 21, item: "Backup image within required size (default 40 KB unless stated)", status: "Yes", comment: "" },
+      { no: 22, item: "Files validated in required validator – link provided", status: "Yes", comment: "" },
+      { no: 23, item: "All banners zipped with correct file size", status: "Yes", comment: "" },
+      { no: 24, item: "The GitHub repository should be created using FIDO or Maconomy number (without the “chn” prefix).", status: "Yes", comment: "" },
+      { no: 25, item: "Update the Assemble master template in the GitHub repo and share the path upon delivery.", status: "Yes", comment: "" },
+      { no: 26, item: "Only the preview link shared (no credentials)", status: "Yes", comment: "" },
+      { no: 27, item: "Please check the banners across all browsers and zoom levels to ensure nothing is visually cut off", status: "Yes", comment: "" },
+      { no: 28, item: "Please verify that the correct file locations are used and that all files are hosted on the server, not loaded from local paths", status: "Yes", comment: "" }
+    ];
+
+    // 3 Strict Options
+    const validOptions = [
+      { val: "Yes", label: "Yes" },
+      { val: "No", label: "No" },
+      { val: "NA - Not Applicable", label: "NA - Not Applicable" }
+    ];
+
+    let currentPreset = 'standard';
+    const tbody = document.getElementById("tableBody");
+
+    function renderChecklist(data) {
+      tbody.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+
+        let optionsHtml = "";
+        validOptions.forEach(opt => {
+          const isSelected = row.status === opt.val ? "selected" : "";
+          optionsHtml += `<option value="${opt.val}" ${isSelected}>${opt.label}</option>`;
+        });
+
+        tr.innerHTML = `
+          <td class="col-sno">${row.no}</td>
+          <td>${row.item}</td>
+          <td class="col-status">
+            <select class="status-select">
+              ${optionsHtml}
+            </select>
+          </td>
+          <td class="col-comments">
+            <div class="comment-wrapper">
+              <input type="text" class="comment-input" value="${row.comment}" placeholder="Add comment...">
+              <button type="button" class="btn-row-clear" title="Clear comment" onclick="this.previousElementSibling.value=''">×</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function switchChecklist(type) {
+      currentPreset = type;
+      document.getElementById("tabStandard").classList.toggle("active", type === 'standard');
+      document.getElementById("tabRolex").classList.toggle("active", type === 'rolex');
+
+      if (type === 'standard') {
+        renderChecklist(standardChecklist);
+      } else {
+        renderChecklist(rolexChecklist);
+      }
+    }
+
+    // Initialize with standard checklist
+    renderChecklist(standardChecklist);
+
+    // Reorder: Drag and Drop Handlers
+    const fieldList = document.getElementById("fieldList");
+    let draggedItem = null;
+
+    fieldList.addEventListener("dragstart", (e) => {
+      const row = e.target.closest(".field-row");
+      if (!row) return;
+      draggedItem = row;
+      setTimeout(() => row.classList.add("dragging"), 0);
+    });
+
+    fieldList.addEventListener("dragend", (e) => {
+      const row = e.target.closest(".field-row");
+      if (row) row.classList.remove("dragging");
+      document.querySelectorAll(".field-row").forEach(r => r.classList.remove("drag-over"));
+      draggedItem = null;
+    });
+
+    fieldList.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const targetRow = e.target.closest(".field-row");
+      if (targetRow && targetRow !== draggedItem) {
+        document.querySelectorAll(".field-row").forEach(r => r.classList.remove("drag-over"));
+        targetRow.classList.add("drag-over");
+      }
+    });
+
+    fieldList.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const targetRow = e.target.closest(".field-row");
+      if (targetRow && targetRow !== draggedItem) {
+        const rect = targetRow.getBoundingClientRect();
+        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+        fieldList.insertBefore(draggedItem, next ? targetRow.nextSibling : targetRow);
+      }
+      document.querySelectorAll(".field-row").forEach(r => r.classList.remove("drag-over"));
+    });
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Email-Ready Copy: Top fields as plain lines, Checklist strictly as an email-compatible table
+    function copyAll() {
+      const fieldRows = document.querySelectorAll("#fieldList .field-row");
+      let filledFields = [];
+
+      fieldRows.forEach(row => {
+        const label = row.querySelector("label").innerText.replace(":", "").trim();
+        const value = row.querySelector("textarea").value.trim();
+        if (value.length > 0) {
+          filledFields.push({ label, value });
+        }
+      });
+
+      const shouldIncludeTable = document.getElementById("includeTableCheck").checked;
+
+      if (filledFields.length === 0 && !shouldIncludeTable) {
+        alert("Nothing to copy! (Text areas are empty and table is unchecked)");
+        return;
+      }
+
+      // Build HTML fragment for email clients
+      let html = `<div style="font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #000000; line-height: 1.4;">`;
+
+      // Top fields as plain text lines
+      if (filledFields.length > 0) {
+        filledFields.forEach(f => {
+          html += `<div style="margin-bottom: 4px;"><strong>${escapeHtml(f.label)}:</strong> <br>${escapeHtml(f.value).replace(/\n/g, "<br>")}</div><br>`;
+        });
+        html += `<br>`;
+      }
+
+      // Checklist formatted exclusively as an HTML Table
+      if (shouldIncludeTable) {
+        html += `
+          <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 850px; font-family: Calibri, Arial, sans-serif; font-size: 10pt; border: 1px solid #7f7f7f; text-align: left;">
+            <thead>
+              <tr style="background-color: #f2f2f2;">
+                <th style="border: 1px solid #7f7f7f; padding: 6px 8px; width: 45px; text-align: center;">S.No</th>
+                <th style="border: 1px solid #7f7f7f; padding: 6px 8px;">Checklist Item</th>
+                <th style="border: 1px solid #7f7f7f; padding: 6px 8px; width: 130px; text-align: center;">Yes / No / NA</th>
+                <th style="border: 1px solid #7f7f7f; padding: 6px 8px; width: 220px;">Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        const rows = tbody.querySelectorAll("tr");
+        rows.forEach((row, idx) => {
+          const sno = row.children[0].innerText.trim();
+          const item = row.children[1].innerText.trim();
+          const status = row.children[2].querySelector("select").value;
+          const comment = row.children[3].querySelector("input").value.trim();
+
+          const bg = idx % 2 === 0 ? "#ffffff" : "#f9f9f9";
+          html += `
+            <tr style="background-color: ${bg};">
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; text-align: center;">${escapeHtml(sno)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px;">${escapeHtml(item)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; text-align: center; font-weight: bold;">${escapeHtml(status)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px;">${escapeHtml(comment)}</td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table>`;
+      }
+
+      html += `</div>`;
+
+      // Copy using browser DOM selection
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.opacity = "0";
+      document.body.appendChild(container);
+
+      const range = document.createRange();
+      range.selectNode(container);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      let success = false;
+      try {
+        success = document.execCommand("copy");
+      } catch (err) {
+        console.error("ExecCommand copy failed:", err);
+      }
+
+      selection.removeAllRanges();
+      document.body.removeChild(container);
+
+      if (success) {
+        const feedback = document.getElementById("copyFeedback");
+        feedback.style.display = "inline";
+        setTimeout(() => {
+          feedback.style.display = "none";
+        }, 2500);
+      } else {
+        alert("Copy failed. Please make sure clipboard permissions are granted.");
+      }
+    }
+
+    // Clear Comments only
+    function clearCommentsOnly() {
+      if (confirm("Clear all comment fields in the checklist?")) {
+        document.querySelectorAll(".comment-input").forEach(input => input.value = "");
+      }
+    }
+
+    // Clear Everything
+    function clearAll() {
+      if (confirm("Clear all text areas and comments?")) {
+        document.querySelectorAll("#fieldList textarea").forEach(tx => tx.value = "");
+        document.querySelectorAll(".comment-input").forEach(input => input.value = "");
+      }
+    }
+  </script>
+
+</body></html>
