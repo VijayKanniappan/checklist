@@ -75,6 +75,10 @@
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
       transition: background-color 0.2s, transform 0.1s;
     }
 
@@ -130,6 +134,27 @@
       color: var(--text-muted);
     }
 
+    /* Add dynamic field button (+) - Perfectly centered */
+    .btn-add-field {
+      background-color: var(--accent-bronze);
+      color: #ffffff;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .btn-add-field:hover {
+      background-color: var(--accent-hover);
+      transform: scale(1.05);
+    }
+
     /* Column Alignment for form inputs */
     .field-column-list {
       display: flex;
@@ -139,8 +164,8 @@
 
     .field-row {
       display: grid;
-      grid-template-columns: 36px 130px 1fr;
-      align-items: start;
+      grid-template-columns: 36px 130px 1fr auto;
+      align-items: center;
       gap: 12px;
       background: var(--input-bg);
       padding: 10px 12px;
@@ -168,7 +193,6 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      padding-top: 4px;
     }
     .drag-handle:active {
       cursor: grabbing;
@@ -179,8 +203,8 @@
       font-weight: 600;
       font-size: 0.88rem;
       color: var(--text-main);
-      padding-top: 8px;
       text-align: right;
+      word-break: break-word;
     }
 
     textarea {
@@ -193,12 +217,34 @@
       border-radius: 6px;
       resize: vertical;
       font-size: 0.875rem;
+      font-weight: 400;
     }
 
     textarea:focus, select:focus, input[type="text"]:focus {
       outline: none;
       border-color: var(--accent-bronze);
       box-shadow: 0 0 0 2px var(--accent-light);
+    }
+
+    /* Remove created field button (-) - Perfectly centered */
+    .btn-remove-field {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      transition: all 0.2s ease;
+    }
+    .btn-remove-field:hover {
+      background-color: var(--danger);
+      color: #ffffff;
     }
 
     /* Checklist Header & Tab Controls */
@@ -229,6 +275,9 @@
       border-radius: 6px;
       cursor: pointer;
       color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.15s;
     }
 
@@ -297,6 +346,7 @@
 
     .comment-wrapper {
       display: flex;
+      align-items: center;
       gap: 6px;
     }
 
@@ -316,6 +366,9 @@
       cursor: pointer;
       font-size: 1rem;
       padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .btn-row-clear:hover {
       color: var(--danger);
@@ -342,7 +395,12 @@
     <!-- Reordered Form Inputs -->
     <div class="card">
       <div class="section-header">
-        <h3>Delivery Details</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h3>Delivery Details</h3>
+          <button type="button" class="btn-add-field" onclick="addCustomField()" title="Add Custom Detail Field">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
         <span class="hint-text">Drag handle (⠿) to rearrange rows</span>
       </div>
       <div class="field-column-list" id="fieldList">
@@ -434,6 +492,36 @@
   </div>
 
   <script>
+    // Dynamic Custom Field Add/Remove
+    function addCustomField() {
+      const labelName = prompt("Enter label name for the new field:");
+      if (!labelName || !labelName.trim()) return;
+
+      const trimmedLabel = labelName.trim();
+      const fieldId = "custom_" + Date.now();
+
+      const row = document.createElement("div");
+      row.className = "field-row custom-field";
+      row.draggable = true;
+      row.innerHTML = `
+        <span class="drag-handle" title="Drag to reorder">⠿</span>
+        <label for="${fieldId}">${escapeHtml(trimmedLabel)}:</label>
+        <textarea id="${fieldId}" placeholder="Enter ${escapeHtml(trimmedLabel)}..."></textarea>
+        <button type="button" class="btn-remove-field" title="Remove custom field" onclick="removeCustomField(this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      `;
+
+      document.getElementById("fieldList").appendChild(row);
+    }
+
+    function removeCustomField(btn) {
+      const row = btn.closest(".field-row");
+      if (row) {
+        row.remove();
+      }
+    }
+
     // 1. Standard Checklist Data (Empty comments)
     const standardChecklist = [
       { no: 1, item: "File name converted? (As instructed on source brief)", status: "Yes", comment: "" },
@@ -585,7 +673,7 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Email-Ready Copy: Top fields as plain lines, Checklist strictly as an email-compatible table
+    // Email-Ready Copy: Top fields with bold labels and strictly regular (non-bold) values
     function copyAll() {
       const fieldRows = document.querySelectorAll("#fieldList .field-row");
       let filledFields = [];
@@ -606,20 +694,25 @@
       }
 
       // Build HTML fragment for email clients
-      let html = `<div style="font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #000000; line-height: 1.4;">`;
+      let html = `<div style="font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #000000; line-height: 1.4; font-weight: normal;">`;
 
-      // Top fields as plain text lines
+      // Top fields: Bold labels, strictly regular/non-bold values
       if (filledFields.length > 0) {
         filledFields.forEach(f => {
-          html += `<div style="margin-bottom: 4px;"><strong>${escapeHtml(f.label)}:</strong> <br>${escapeHtml(f.value).replace(/\n/g, "<br>")}</div><br>`;
+          html += `
+            <div style="margin: 0 0 10px 0; font-family: Calibri, Arial, sans-serif; font-size: 11pt; font-weight: normal; color: #000000; line-height: 1.4;">
+              <b style="font-weight: bold; color: #000000;">${escapeHtml(f.label)}:</b><br>
+              <span style="font-weight: normal; font-style: normal; color: #000000;">${escapeHtml(f.value).replace(/\n/g, "<br>")}</span>
+            </div>
+          `;
         });
-        html += `<br>`;
+        html += `<div style="height: 10px;"></div>`;
       }
 
       // Checklist formatted exclusively as an HTML Table
       if (shouldIncludeTable) {
         html += `
-          <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 850px; font-family: Calibri, Arial, sans-serif; font-size: 10pt; border: 1px solid #7f7f7f; text-align: left;">
+          <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 850px; font-family: Calibri, Arial, sans-serif; font-size: 10pt; border: 1px solid #7f7f7f; text-align: left; font-weight: normal;">
             <thead>
               <tr style="background-color: #f2f2f2;">
                 <th style="border: 1px solid #7f7f7f; padding: 6px 8px; width: 45px; text-align: center;">S.No</th>
@@ -641,10 +734,10 @@
           const bg = idx % 2 === 0 ? "#ffffff" : "#f9f9f9";
           html += `
             <tr style="background-color: ${bg};">
-              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; text-align: center;">${escapeHtml(sno)}</td>
-              <td style="border: 1px solid #7f7f7f; padding: 5px 8px;">${escapeHtml(item)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; text-align: center; font-weight: normal;">${escapeHtml(sno)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; font-weight: normal;">${escapeHtml(item)}</td>
               <td style="border: 1px solid #7f7f7f; padding: 5px 8px; text-align: center; font-weight: bold;">${escapeHtml(status)}</td>
-              <td style="border: 1px solid #7f7f7f; padding: 5px 8px;">${escapeHtml(comment)}</td>
+              <td style="border: 1px solid #7f7f7f; padding: 5px 8px; font-weight: normal;">${escapeHtml(comment)}</td>
             </tr>
           `;
         });
